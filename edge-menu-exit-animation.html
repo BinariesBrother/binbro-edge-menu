@@ -1,0 +1,78 @@
+<link rel="import" href="../polymer/polymer.html">
+<!--<link rel="import" href="../neon-animation/web-animations.html">-->
+
+<link rel="import" href="./edge-menu-animation-behavior.html">
+<!--<link rel="import" href="./web-animation-js.html">-->
+
+<script>
+
+  Polymer({
+
+    is: 'edge-menu-exit-animation',
+
+    behaviors: [
+      EdgeMenuAnimationBehavior
+    ],
+
+    configure: function(config) {
+      menuOffsetX = 0;
+      menuOffsetY = 0;
+      if ( config.edge == 'top' ) {
+          menuOffsetY = config.distanceFromEdge;
+      } else if ( config.edge == 'bottom' ) {
+          menuOffsetY = -config.distanceFromEdge;
+      } else if ( config.edge == 'left' ) {
+          menuOffsetX = config.distanceFromEdge;
+      } else {
+          menuOffsetX = -config.distanceFromEdge;
+      }
+
+      var menuToggleEffect = new KeyframeEffect(config.menuToggle, [
+        { transform: this._exitAnimationMenu() },
+        { transform: 'translate(-50%, -50%)' },
+      ], config.duration);
+
+      var animList = [menuToggleEffect];
+      var items = config.items;
+      for ( var i = 0 ; i < items.length ; i++ ) {
+        animList.push(new KeyframeEffect(items[i], [
+            { transform: this._exitAnimation(i, items, config) },
+            { transform: 'translate(-50%, -50%)' },
+        ], config.duration));
+      }
+      return new GroupEffect(animList);
+    },
+
+    /**
+     * @param {object} config configuration data
+     * what to do when finish
+     */
+    onFinish: function(config) {
+      config.menuToggle.style.transform = 'translate(-50%, -50%)';
+      var items = config.items;
+      for ( var i = 0 ; i < items.length ; i++ ) {
+          items[i].style.transform = 'translate(-50%, -50%)';
+      }
+    },
+
+    /**
+      * close animation with final position for closed menu
+      */
+    _exitAnimation: function(i, items, config) {
+      return 'translate(calc(-50% + @Xpx), calc(-50% + @Ypx))'
+          .replace('@X', this.getOffsetX(i+1, items.length, config)+menuOffsetX)
+          .replace('@Y', this.getOffsetY(i+1, items.length, config)+menuOffsetY);
+    },
+
+    /**
+     * close animation for the menu icon
+     */
+    _exitAnimationMenu: function() {
+      return 'translate(calc(-50% + @Xpx), calc(-50% + @Ypx))'
+        .replace('@X', menuOffsetX)
+        .replace('@Y', menuOffsetY);
+    }
+
+  });
+
+</script>

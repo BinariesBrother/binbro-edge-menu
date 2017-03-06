@@ -1,0 +1,346 @@
+<link rel="import" href="../polymer/polymer.html">
+<!--<link rel="import" href="../neon-animation/animations/transform-animation.html">-->
+<!--<link rel="import" href="../neon-animation/neon-animation-runner-behavior.html">-->
+
+<link rel="import" href="./edge-menu-animation-runner-behavior.html">
+
+<!--
+`binbro-edge-menu` is inspired by Ubuntu touch radial bottom edge menu.
+
+It consists in a circular menu by default hidden. To open it, the user clicks
+on a token on some edge on the screen.
+
+@demo demo/index.html
+-->
+
+<dom-module id="binbro-edge-menu">
+  <template>
+    <style>
+      :host {}
+
+      #scrim {
+        position: fixed;
+        @apply(--edge-menu-scrim);
+      }
+
+      .top, ::content .top {
+        top: 0%;
+        left: 50%;
+        bottom: 100%;
+        right: 50%;
+        @apply(--edge-menu-top);
+      }
+      ::content .top {
+        @apply(--edge-menu-content-top);
+      }
+
+      .right, ::content .right {
+        top: 50%;
+        left: 100%;
+        bottom: 50%;
+        right: 0%;
+        @apply(--edge-menu-right);
+      }
+      ::content .right {
+        @apply(--edge-menu-content-right);
+      }
+
+      .bottom, ::content .bottom {
+        top: 100%;
+        left: 50%;
+        bottom: 0%;
+        right: 50%;
+        @apply(--edge-menu-bottom);
+      }
+      ::content .bottom {
+        @apply(--edge-menu-content-bottom);
+      }
+
+      .left, ::content .left {
+        top: 50%;
+        left: 0%;
+        bottom: 50%;
+        right: 100%;
+        @apply(--edge-menu-left);
+      }
+      ::content .left {
+        @apply(--edge-menu-content-left);
+      }
+
+      .opened {
+        top: 0%;
+        left: 0%;
+        bottom: 0%;
+        right: 0%;
+        @apply(--edge-menu-opened);
+      }
+
+      ::content [edge-menu-toggle] {
+        position: fixed;
+        transform: translate(-50%, -50%);
+        @apply(--edge-menu-toggle);
+      }
+
+      ::content [edge-menu-items] {
+        @apply(--edge-menu-items);
+      }
+
+      ::content [edge-menu-items] > [order] {
+        position: fixed;
+        transform: translate(-50%, -50%);
+        @apply(--edge-menu-item);
+      }
+
+    </style>
+    <div id="scrim"></div>
+    <content id="menu" select="[edge-menu-items]"></content>
+    <content id="menuToggle" select="[edge-menu-toggle]"></content>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'binbro-edge-menu',
+
+      behaviors: [
+        EdgeMenuAnimationRunnerBehavior
+      ],
+
+      properties: {
+        /**
+         * The edge of the screen used to position the menu.
+         *
+         * The possible value are: top | right | bottom | left.
+         */
+        edge: {
+          type: String,
+          value: 'top',
+          notify: true,
+          observer: '_onEdgeChanged'
+        },
+        /**
+         * In pixel. Distance between center and items when the menu is opened.
+         */
+        radius: {
+          type: Number,
+          value: 60,
+          observer: '_onRadiusChanged'
+        },
+
+        /**
+         * The max pan up delta in pixel.
+         * Corresponds to the distance from the selected edge when the menu is
+         * opened.
+         */
+        distanceFromEdge: {
+          type: Number,
+          value: 200,
+          observer: '_ondistanceFromEdgeChanged'
+        },
+
+        /**
+         * The transition duration for the animation.
+         */
+        duration: {
+          type: Number,
+          value: 400,
+        },
+
+        /**
+         * toggle the menu manually with this property.
+         */
+        opened: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          observer: '_onOpenedChanged'
+        },
+
+      },
+
+      listeners: {
+        'edge-menu-animation-finish': '_onEdgeMenuAnimationFinished'
+      },
+
+      attached: function(){
+        var menuToggle = this._getMenuToggle();
+        // listens to the tap events
+        this.listen(menuToggle, 'tap', '_handleMenuToggleTap');
+
+        // listens to the track events (for mobile users)
+        this.listen(menuToggle, 'track', '_handleMenuToggleTrack');
+
+        // modifies animations according to the component attributes
+        this.update();
+
+        this.isAttached = true;
+      },
+
+      detached: function() {
+        var menuToggle = this._getMenuToggle();
+
+        // unlisten from input events
+        this.unlisten(menuToggle, 'tap', '_handleMenuToggleTap');
+        this.unlisten(menuToggle, 'track', '_handleMenuToggleTrack');
+
+        this.isAttached = false;
+      },
+
+      /**
+       * Update initial position classes for each menu items and the toggle button
+       */
+      update: function(newEdge, oldEdge) {
+        if ( this.isAttached ) {
+          this.toggleClass((oldEdge)? oldEdge : this.edge, false, this.$.scrim);
+          this.toggleClass((newEdge)? newEdge : this.edge, true, this.$.scrim);
+          var menuToggle = this._getMenuToggle();
+          if (menuToggle) {
+            this.toggleClass((oldEdge)? oldEdge : this.edge, false, menuToggle);
+            this.toggleClass((newEdge)? newEdge : this.edge, true, menuToggle);
+          }
+          var items = this._getItems();
+          for (var i = 0; i < items.length; i++) {
+            this.toggleClass((oldEdge)? oldEdge : this.edge, false, items[i]);
+            this.toggleClass((newEdge)? newEdge : this.edge, true, items[i]);
+          }
+          this._configureMenuAnimations({
+            'distanceFromEdge': this.distanceFromEdge,
+            'radius': this.radius,
+            'edge': this.edge,
+            'duration': this.duration,
+            'menuToggle': menuToggle,
+            'items': this._getItems()
+          });
+        }
+
+      },
+
+      /**
+       * if menu tapped.
+       */
+      _handleMenuToggleTap: function(event, detail) {
+        this.set('opened', !this.opened);
+      },
+
+      /*
+       * used in _handleMenuToggleTrack for computing at which
+       * percentage of the animation the swipe is (delta from where
+       * the initial circle is)
+      */
+      _computeMoving: function(e) {
+        var modificator = 0;
+        switch(this.edge) {
+          case 'top':
+            modificator = e.detail.dy
+          break;
+          case 'bottom':
+            modificator = -e.detail.dy
+          break;
+          case 'left':
+            modificator = e.detail.dx
+          break
+          case 'right':
+            modificator = -e.detail.dx
+          break;
+        }
+        return Math.max(0, Math.min(0.99, modificator/this.distanceFromEdge));
+      },
+
+      /**
+       * what to do when the user swipes the menu icon
+       */
+      _handleMenuToggleTrack: function(e) {
+        switch(e.detail.state) {
+          case 'start':
+            //console.log("start track");
+            break;
+          case 'track':
+            //console.log("tracking in progress");
+            if ( !this.opened ) {
+              var percentage = this._computeMoving(e);
+              this._setAnimationTime(this.duration*percentage);
+            }
+            break;
+          case 'end':
+            //console.log("end tracking");
+            if ( !this.opened ) {
+              var percentage = this._computeMoving(e);
+              if ( percentage > 2/3 ) {
+                this._playMove(this.duration*percentage);
+                this.opened = true;
+              }
+              else {
+                this._cancelMove(this.duration-this.duration*percentage-1);
+                this.opened = false;
+              }
+            }
+            break;
+        }
+      },
+
+      /**
+       * When we change the edge position
+       */
+      _onEdgeChanged: function(newEdge, oldEdge) {
+        this.update(newEdge, oldEdge);
+      },
+
+      /**
+       * When we change the radius
+       */
+      _onRadiusChanged: function(newRadius, oldRadius) {
+        this.update();
+      },
+
+      /**
+       * when we change the distance from the edge
+       */
+      _ondistanceFromEdgeChanged: function(newdistanceFromEdge, olddistanceFromEdge) {
+        this.update();
+      },
+
+      /**
+       * if opened change, we play according animation
+       */
+      _onOpenedChanged: function(newValue, oldValue) {
+        if (newValue) {
+          this._playMenuAnimation('entry');
+        }
+        else {
+          this._playMenuAnimation('exit');
+        }
+      },
+
+      /**
+       * returns all the elements in content tag. Used for getting all
+       * the elements in the menu in the correct order
+       * @return {Array<HTMLElements>} all elements in the content tag
+       */
+      _getItems: function() {
+        var content = this.getContentChildren('#menu');
+        var items = [];
+        for (var i=0; i<content.length; i++) {
+          var _items = Polymer.dom(content[i]).querySelectorAll('[order]');
+          items = items.concat(_items);
+        }
+        return items;
+      },
+
+      /**
+       * toggles the menu
+       */
+      _getMenuToggle: function() {
+        var menuToggle = this.getContentChildren('#menuToggle');
+        return (menuToggle.length > 0)? menuToggle[0] : null;
+      },
+
+      /**
+       * for now, does nothing
+       */
+      _onEdgeMenuAnimationFinished: function() {
+      },
+
+
+    });
+  </script>
+</dom-module>

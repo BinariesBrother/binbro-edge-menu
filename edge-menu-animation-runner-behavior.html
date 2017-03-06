@@ -1,0 +1,127 @@
+<link rel="import" href="../polymer/polymer.html">
+<!--<link rel="import" href="../neon-animation/web-animations.html">-->
+
+<link rel="import" href="./edge-menu-entry-animation.html">
+<link rel="import" href="./edge-menu-exit-animation.html">
+<!--<link rel="import" href="./web-animation-js.html">-->
+
+<script>
+  /**
+   * Edge menu animation behavior
+   * Provide methods to work with edge-menu-animations
+   * @polymerBehavior EdgeMenuAnimationRunnerBehavior
+   */
+  EdgeMenuAnimationRunnerBehavior = {
+
+    properties: {
+      /**
+       * edge-menu animation element, closed to opened.
+       */
+      entryAnimation: {
+        type: String,
+        value: 'edge-menu-entry-animation'
+      },
+      /**
+       * edge-menu animation element, opened to closed. Optional
+       */
+      exitAnimation: {
+        type: String,
+        value: 'edge-menu-exit-animation'
+      },
+    },
+
+    /**
+     * Initializes animations for the component
+     */
+    _configureMenuAnimations: function(args) {
+      this._animations = {
+        'entry': this._createAnimation(this.entryAnimation, args),
+        'exit':  this._createAnimation(this.exitAnimation, args),
+      };
+    },
+
+    /**
+     * Creates an animation, binding it with the finish event.
+     */
+    _createAnimation: function(animationName, args) {
+      if (animationName) {
+        var animConfig = document.createElement(animationName);
+        var effect = animConfig.configure(args);
+        var _animation = new Animation(effect, document.timeline);
+        // for (var i = 0; i < _animation.effect.children.length; i++) {
+        //   var frames = _animation.effect.children[i].getFrames();
+        //   console.log(frames);
+        // }
+        _animation.cancel();
+        _animation.addEventListener('finish', this._finish.bind(this));
+        _animation.addEventListener('finish', animConfig.onFinish.bind(animConfig, args));
+        return _animation;
+      }
+      return undefined;
+    },
+
+    /**
+     * fire an event that says the menu animation is finished
+     */
+    _finish: function(event) {
+      this.fire('edge-menu-animation-finish', event, {bubbles: false});
+    },
+
+    /*
+     * plays the menu animation
+     * @param {string} either 'entry' or 'exit'. Plays the wanted animation.
+     */
+    _playMenuAnimation: function(type) {
+      if (this._animations == undefined) return;
+      if (this._animations[type]) {
+        this._animations[type].play();
+      }
+      else {
+        this._animations['entry'].reverse();
+      }
+    },
+
+    /*
+     * Sets animations timer with a given time in ms during the animation.
+    */
+    _setAnimationTime: function(time) {
+      var anim = this._animations['entry'];
+      anim.currentTime = time;
+      anim.pause();
+    },
+
+    /**
+     * initiates move
+     * @param {number} time Time when we start the play animation
+     */
+    _playMove: function(time) {
+      this._animations['exit'].cancel();
+      this._animations['entry'].currentTime = time;
+      this._animations['entry'].play();
+    },
+
+    /**
+     * Cancels move
+     * @param {number} time Time when we start the exit animation
+     */
+    _cancelMove: function(time) {
+      this._animations['entry'].cancel()
+      this._animations['exit'].currentTime = time;
+      this._animations['exit'].play();
+    },
+
+    /**
+     * Cancels all animations for all elements in the menu
+     */
+    _cancelMenuAnimations: function() {
+      for (var i in this._animations) {
+        var animation = this._animations[i];
+        if (animation) {
+          animation.cancel();
+        }
+      }
+    },
+
+  }
+
+</script>

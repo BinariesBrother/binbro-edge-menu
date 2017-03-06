@@ -1,0 +1,62 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--<link rel="import" href="./web-animation-js.html">-->
+
+<script>
+  /**
+   * EdgeMenuAnimationBehavior
+   * Provide useful methods to make menu animation
+   * @polymerBehavior EdgeMenuAnimationBehavior
+   */
+  EdgeMenuAnimationBehavior = {
+
+    /** get offset X for some element in the menu
+    * @param {number} index index of the element in the menu
+    * @param {number} nb_elts number of elements in the menu
+    * @param {object} config object containing global information
+    * @return {number} offset X for the menu element
+    */
+    getOffsetX: function(index, nb_elts, config) {
+      return config.radius * Math.cos(this.getAngle(nb_elts, index));
+    },
+
+    /** get offset Y for some element in the menu
+     * @param {number} index index of the element in the menu
+     * @param {number} nb_elts number of elements in the menu
+     * @param {object} config object containing global information
+     * @return {number} offset Y for the menu element
+    */
+    getOffsetY: function(index, nb_elts, config) {
+      return config.radius * Math.sin(this.getAngle(nb_elts, index));
+    },
+
+
+    /**
+      *  returns a specific angle for each element in the menu
+      * @param {number} nb_items number of items in the menu
+      * @param {number} index index of the wanted item in the menu (goes from 1 to nb_items)
+      * @return {number} angle for the the index given
+    */
+    getAngle: function(nb_items, index) {
+        var i = index-1;
+        return 2*Math.PI*i/nb_items
+    },
+
+
+    /**
+     * Configure animation.
+     * @return KeyframeEffect|GroupEffect or any other effect compatible with Animation constructor.
+     */
+    configure: function(args) {
+      throw new Exception('No implementation found for configure method');
+    },
+
+    /**
+     * method bind with edgeMenu config context
+     */
+    onFinish: function() {},
+
+  };
+
+
+</script>

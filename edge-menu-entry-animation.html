@@ -1,0 +1,80 @@
+<link rel="import" href="../polymer/polymer.html">
+<!--<link rel="import" href="../neon-animation/web-animations.html">-->
+
+<link rel="import" href="./edge-menu-animation-behavior.html">
+<!--<link rel="import" href="./web-animation-js.html">-->
+
+<script>
+
+  Polymer({
+
+    is: 'edge-menu-entry-animation',
+
+    behaviors: [
+      EdgeMenuAnimationBehavior
+    ],
+
+    configure: function(config) {
+
+      this.menuOffsetX = 0;
+      this.menuOffsetY = 0;
+      if ( config.edge == 'top' ) {
+          this.menuOffsetY = config.distanceFromEdge;
+      } else if ( config.edge == 'bottom' ) {
+          this.menuOffsetY = -config.distanceFromEdge;
+      } else if ( config.edge == 'left' ) {
+          this.menuOffsetX = config.distanceFromEdge;
+      } else {
+          this.menuOffsetX = -config.distanceFromEdge;
+      }
+
+      var menuToggleEffect = new KeyframeEffect(config.menuToggle, [
+        { transform: 'translate(-50%, -50%)' },
+        { transform: this._openMenuAnimation() },
+      ], config.duration);
+
+      var animList = [menuToggleEffect];
+      var items = config.items;
+      for ( var i = 0 ; i < items.length ; i++ ) {
+        animList.push(new KeyframeEffect(items[i], [
+            { transform: 'translate(-50%, -50%)' },
+            { transform: this._openAnimation(i, items, config) },
+        ], config.duration));
+      }
+      return new GroupEffect(animList);
+    },
+
+    /**
+     * @param {object} config configuration data
+     * what to do when finish
+     */
+    onFinish: function(config) {
+      config.menuToggle.style.transform = this._openMenuAnimation();
+      var items = config.items;
+      for ( var i = 0 ; i < items.length ; i++ ) {
+          items[i].style.transform = this._openAnimation(i, items, config);
+      }
+
+    },
+
+    /**
+      * open animation with final position for opened menu
+      */
+    _openAnimation: function(i, items, config) {
+      return 'translate(calc(-50% + @Xpx), calc(-50% + @Ypx))'
+          .replace('@X', this.getOffsetX(i+1, items.length, config)+this.menuOffsetX )
+          .replace('@Y', this.getOffsetY(i+1, items.length, config)+this.menuOffsetY );
+    },
+
+    /**
+     * open animation for the menu icon
+     */
+    _openMenuAnimation: function() {
+      return 'translate(calc(-50% + @Xpx), calc(-50% + @Ypx))'
+        .replace('@X', this.menuOffsetX)
+        .replace('@Y', this.menuOffsetY);
+    }
+
+  });
+
+</script>

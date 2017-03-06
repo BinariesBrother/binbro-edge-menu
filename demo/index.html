@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+  <head>
+    <title>binbro-edge-menu demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../polymer/polymer.html">
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../iron-flex-layout/iron-flex-layout-classes.html">
+    <link rel="import" href="../../iron-icons/iron-icons.html">
+    <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../../paper-listbox/paper-listbox.html">
+    <link rel="import" href="../../paper-item/paper-item.html">
+    <link rel="import" href="../../paper-fab/paper-fab.html">
+    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+
+    <link rel="import" href="../binbro-edge-menu.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles iron-flex iron-flex-alignment">
+      .demo {
+        position: relative;
+        height: 360px;
+        width: 360px;
+      }
+      binbro-edge-menu {
+        --edge-menu-scrim: {
+          position: absolute;
+          background-color: rgba(0,0,0,0.0);
+          transition: all 0.5s;
+        }
+        --edge-menu-scrim-opened: {
+          background-color: rgba(0,0,0,0.2);
+        }
+        --edge-menu-toggle: {
+          position: absolute;
+        }
+        --edge-menu-item: {
+          position: absolute;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic binbro-edge-menu Demo</h3>
+      <demo-snippet>
+        <template id="root" is="dom-bind">
+          <div class="toggle flex">
+            <div class="layout horizontal around-justified center">
+              <paper-dropdown-menu label="Edge">
+                <paper-listbox class="dropdown-content" selected="{{edge}}" attr-for-selected="edge">
+                  <paper-item edge="top">Top</paper-item>
+                  <paper-item edge="bottom">Bottom</paper-item>
+                  <paper-item edge="right">Right</paper-item>
+                  <paper-item edge="left">Left</paper-item>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-checkbox checked="{{opened}}">Opened</paper-checkbox>
+            </div>
+            <div class="layout horizontal around-justified center">
+              <paper-input label="Radius" value="{{radius}}"></paper-input>
+              <paper-input label="distanceFromEdge" value="{{distanceFromEdge}}"></paper-input>
+            </div>
+          </div>
+          <div class="demo">
+            <binbro-edge-menu edge="{{edge}}" radius="{{radius}}" distanceFromEdge="{{distanceFromEdge}}" opened="{{opened}}">
+              <paper-fab edge-menu-toggle icon="apps"></paper-fab>
+              <div edge-menu-items>
+                <paper-fab icon="favorite" order="6">Test 1</paper-fab>
+                <paper-fab icon="delete" order="1">Test 2</paper-fab>
+                <paper-fab icon="face" order="5">Test 3</paper-fab>
+                <paper-fab icon="help" order="3">Test 4</paper-fab>
+                <paper-fab icon="flag" order="2">Test 5</paper-fab>
+                <paper-fab icon="opacity" order="4">Test 6</paper-fab>
+              </div>
+            </binbro-edge-menu>
+          </div>
+        </template>
+        <script>
+          /**
+           * Set the default value for the demo.
+           */
+          document.getElementById('root').edge = 'bottom';
+          document.getElementById('root').radius = 60;
+          document.getElementById('root').distanceFromEdge = 110;
+          document.getElementById('root').opened = false;
+        </script>
+      </demo-snippet>
+    </div>
+  </body>
+</html>
