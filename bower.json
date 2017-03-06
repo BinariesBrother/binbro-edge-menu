@@ -16,5 +16,23 @@
     "paper-item": "PolymerElements/paper-item#^1.2.1",
     "paper-fab": "PolymerElements/paper-fab#^1.2.0",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.0.0"
+  },
+  "moduleType": ["globals"],
+  "keywords": [
+    "menu",
+    "edge",
+    "ergonomic"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BinariesBrother/binbro-edge-menu.git"
   }
 }
