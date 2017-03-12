@@ -262,7 +262,6 @@ on a token on some edge on the screen.
           case 'end':
             //console.log("end tracking");
             var percentage = this._computeMoving(e);
-            console.log(percentage);
             if ( percentage > 2/3 ) {
               if ( this.opened ) { // if the action is completed
                 this._cancelMove(this.duration*percentage);
