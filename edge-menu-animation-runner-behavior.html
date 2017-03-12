@@ -84,8 +84,8 @@
     /*
      * Sets animations timer with a given time in ms during the animation.
     */
-    _setAnimationTime: function(time) {
-      var anim = this._animations['entry'];
+    _setAnimationTime: function(time, isOpen) {
+      var anim = this._animations[(!isOpen ? 'entry' : 'exit')];
       anim.currentTime = time;
       anim.pause();
     },

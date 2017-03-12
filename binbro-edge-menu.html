@@ -243,7 +243,7 @@ on a token on some edge on the screen.
             modificator = -e.detail.dx
           break;
         }
-        return Math.max(0, Math.min(0.99, modificator/this.distanceFromEdge));
+        return Math.max(0, Math.min(0.99, (this.opened?-1:1)*modificator/this.distanceFromEdge));
       },
 
       /**
@@ -256,22 +256,25 @@ on a token on some edge on the screen.
             break;
           case 'track':
             //console.log("tracking in progress");
-            if ( !this.opened ) {
-              var percentage = this._computeMoving(e);
-              this._setAnimationTime(this.duration*percentage);
-            }
+            var percentage = this._computeMoving(e);
+            this._setAnimationTime(this.duration*percentage, this.opened);
             break;
           case 'end':
             //console.log("end tracking");
-            if ( !this.opened ) {
-              var percentage = this._computeMoving(e);
-              if ( percentage > 2/3 ) {
+            var percentage = this._computeMoving(e);
+            console.log(percentage);
+            if ( percentage > 2/3 ) {
+              if ( this.opened ) { // if the action is completed
+                this._cancelMove(this.duration*percentage);
+              } else {
                 this._playMove(this.duration*percentage);
-                this.opened = true;
               }
-              else {
+              this.opened = !this.opened;
+            } else { // if the action if not completed
+              if ( !this.opened ) {
                 this._cancelMove(this.duration-this.duration*percentage-1);
-                this.opened = false;
+              } else {
+                this._playMove(this.duration-this.duration*percentage-1);
               }
             }
             break;
