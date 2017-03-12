@@ -162,7 +162,8 @@ on a token on some edge on the screen.
         'edge-menu-animation-finish': '_onEdgeMenuAnimationFinished'
       },
 
-      attached: function(){
+      // helper function for attached method
+      _attachedContent: function() {
         var menuToggle = this._getMenuToggle();
         // listens to the tap events
         this.listen(menuToggle, 'tap', '_handleMenuToggleTap');
@@ -174,6 +175,21 @@ on a token on some edge on the screen.
         this.update();
 
         this.isAttached = true;
+      },
+
+      attached: function(){
+        if ( !KeyframeEffect ) {
+          console.log("KeyFrames not found, loading it...")
+          this.importHref("https://rawgit.com/web-animations/web-animations-js/master/web-animations.min.js",
+          function(e) {
+          }, function(e) {
+            console.log(e);
+          });
+        } else {
+          console.log("KeyFrames already loaded, all is fine")
+          this._attachedContent();
+        }
+
       },
 
       detached: function() {
